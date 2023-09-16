@@ -1,3 +1,4 @@
+from sqlalchemy import Column, Integer, String, Date, ForeignKey
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -17,6 +18,8 @@ class Student(db.Model):
     email = db.Column(db.String(60), unique=True, nullable=False)
     health_system = db.Column(db.String(25), nullable=False)
     observation = db.Column(db.String(250), nullable=True)
+    id_financial = db.relationship('Ap_Financial', uselist=False)
+    id_academic = db.relationship('Ap_Academic')
 
     def serialize(self):
         return {
@@ -32,7 +35,6 @@ class Student(db.Model):
             "observation": self.observation
         }
 
-
 class Ap_Financial(db.Model):
     __tablename__ = 'ap_financial'
     id = db.Column(db.Integer, primary_key=True)
@@ -42,6 +44,7 @@ class Ap_Financial(db.Model):
     contact_number = db.Column(db.Integer, nullable=False)
     address = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(60), unique=True, nullable=False)
+    id_student = db.Column(db.Integer, db.ForeignKey('student.id'))
 
     def serialize(self):
         return {
@@ -53,7 +56,6 @@ class Ap_Financial(db.Model):
             "address": self.address,
             "email": self.email
         }
-
 
 class Ap_Academic(db.Model):
     __tablename__ = 'ap_academico'
@@ -64,6 +66,7 @@ class Ap_Academic(db.Model):
     contact_number = db.Column(db.Integer, nullable=False)
     address = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(60), unique=True, nullable=False)
+    id_student = db.Column(db.Integer, db.ForeignKey('student.id'))
 
     def serialize(self):
         return {
@@ -75,7 +78,6 @@ class Ap_Academic(db.Model):
             "address": self.address,
             "email": self.email
         }
-
 
 class Administrator(db.Model):
     __tablename__ = 'administrator'
@@ -96,7 +98,6 @@ class Administrator(db.Model):
             "email": self.email
         }
 
-
 class Grade(db.Model):
     __tablename__ = 'grade'
     id = db.Column(db.Integer, primary_key=True)
@@ -110,7 +111,6 @@ class Grade(db.Model):
             "date": self.date
         }
 
-
 class Course(db.Model):
     __tablename__ = 'course'
     id = db.Column(db.Integer, primary_key=True)
@@ -120,4 +120,26 @@ class Course(db.Model):
         return {
             "id": self.id,
             "course": self.course
+        }
+    
+class Status(db.Model):
+    __tablename__= 'status'
+    id = db.Column(db.Integer, primary_key=True)
+    status = db.Column(db.Integer, nullable=False)
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "status": self.status
+        }
+    
+class Roll(db.Model):
+    __tablename__= 'roll'
+    id = db.Column(db.Integer, primary_key=True)
+    status = db.Column(db.Integer, nullable=False)
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "roll": self.roll
         }
