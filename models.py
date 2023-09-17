@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Column, Integer, String, Date, ForeignKey
 
 
 db = SQLAlchemy()
