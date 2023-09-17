@@ -1,3 +1,12 @@
+from flask import Flask
+from models import db, User
+
+#Se instancia nuesta aPP en Flask
+app = Flask(__name__)
+print("nombre del archivo",__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///proyect.db"
+db.init_app(app) #coneccion a las base de datos al ajecutar app
+
 from flask import Flask, request, jsonify
 from models import db, User
 
