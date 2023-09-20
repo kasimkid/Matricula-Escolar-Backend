@@ -18,8 +18,12 @@ class Student(db.Model):
     email = db.Column(db.String(60), unique=True, nullable=False)
     health_system = db.Column(db.String(25), nullable=False)
     observation = db.Column(db.String(250), nullable=True)
-    id_financial = db.relationship('Ap_Financial', uselist=False)
-    id_academic = db.relationship('Ap_Academic')
+    ap_financial_id = db.Column(db.Integer, db.ForeignKey('ap_financial.id'), unique=True, nullable=True)
+    ap_financial = db.relationship('Ap_Financial', back_populates='student')
+    ap_academic_id = db.Column(db.Integer, db.ForeignKey('ap_academic.id', unique=True, nullable=True))
+    ap_academic = db.relationship('Ap_Academic', back_populates='student')
+    roll_id = db.Column(db.Integer, db.ForeignKey(roll.id), unique=True, nullable=True)
+    roll = db.relationship('Roll', back_populates='student')
 
     def serialize(self):
         return {
@@ -32,7 +36,10 @@ class Student(db.Model):
             "adrress": self.adrress,
             "email": self.email,
             "health_system": self.health_system,
-            "observation": self.observation
+            "observation": self.observation,
+            "ap_financial": self.ap_financial.serialize() if self.ap_financial else None,
+            "ap_academic": self.ap_academic.serialize() if self.ap_academic else None,
+            "roll": self.roll.serialize() if self.roll else None
         }
 
 class Ap_Financial(db.Model):
@@ -44,7 +51,7 @@ class Ap_Financial(db.Model):
     contact_number = db.Column(db.Integer, nullable=False)
     address = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(60), unique=True, nullable=False)
-    id_student = db.Column(db.Integer, db.ForeignKey('student.id'))
+    students = db.relationship('Student', back_populates='ap_financial')
 
     def serialize(self):
         return {
@@ -58,7 +65,7 @@ class Ap_Financial(db.Model):
         }
 
 class Ap_Academic(db.Model):
-    __tablename__ = 'ap_academico'
+    __tablename__ = 'ap_academic'
     id = db.Column(db.Integer, primary_key=True)
     rut = db.Column(db.Integer, unique=True, nullable=False)
     name = db.Column(db.String(50), nullable=False)
@@ -66,7 +73,7 @@ class Ap_Academic(db.Model):
     contact_number = db.Column(db.Integer, nullable=False)
     address = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(60), unique=True, nullable=False)
-    id_student = db.Column(db.Integer, db.ForeignKey('student.id'))
+    student = db.relationship('Student', back_populates='ap_academic')
 
     def serialize(self):
         return {
