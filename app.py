@@ -10,7 +10,7 @@ db.init_app(app) #coneccion a las base de datos al ajecutar app
 
 @app.route("/")
 def home():
-    return "<h1>Hola desde flask<h1/>"
+    return "<h1>Probando flask<h1/>"
 
 
 @app.route("/create_user", methods=["POST"])
