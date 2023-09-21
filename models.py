@@ -1,9 +1,6 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey
 from flask_sqlalchemy import SQLAlchemy
 
-
 db = SQLAlchemy()
-
 
 class Student(db.Model):
     __tablename__ = 'student'
@@ -18,12 +15,10 @@ class Student(db.Model):
     email = db.Column(db.String(60), unique=True, nullable=False)
     health_system = db.Column(db.String(25), nullable=False)
     observation = db.Column(db.String(250), nullable=True)
-    ap_financial_id = db.Column(db.Integer, db.ForeignKey('ap_financial.id'), unique=True, nullable=True)
-    ap_financial = db.relationship('Ap_Financial', back_populates='student')
-    ap_academic_id = db.Column(db.Integer, db.ForeignKey('ap_academic.id', unique=True, nullable=True))
-    ap_academic = db.relationship('Ap_Academic', back_populates='student')
-    roll_id = db.Column(db.Integer, db.ForeignKey(roll.id), unique=True, nullable=True)
-    roll = db.relationship('Roll', back_populates='student')
+
+    # relations
+    financial = db.relationship('Ap_Financial', uselist=False, back_populates='student')
+    academic = db.relationship('Ap_Academic', uselist=False, back_populates='student')
 
     def serialize(self):
         return {
@@ -36,11 +31,9 @@ class Student(db.Model):
             "adrress": self.adrress,
             "email": self.email,
             "health_system": self.health_system,
-            "observation": self.observation,
-            "ap_financial": self.ap_financial.serialize() if self.ap_financial else None,
-            "ap_academic": self.ap_academic.serialize() if self.ap_academic else None,
-            "roll": self.roll.serialize() if self.roll else None
+            "observation": self.observation
         }
+
 
 class Ap_Financial(db.Model):
     __tablename__ = 'ap_financial'
@@ -51,7 +44,9 @@ class Ap_Financial(db.Model):
     contact_number = db.Column(db.Integer, nullable=False)
     address = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(60), unique=True, nullable=False)
-    students = db.relationship('Student', back_populates='ap_financial')
+
+    # Foreign Key
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'))
 
     def serialize(self):
         return {
@@ -63,6 +58,7 @@ class Ap_Financial(db.Model):
             "address": self.address,
             "email": self.email
         }
+
 
 class Ap_Academic(db.Model):
     __tablename__ = 'ap_academic'
@@ -75,6 +71,9 @@ class Ap_Academic(db.Model):
     email = db.Column(db.String(60), unique=True, nullable=False)
     student = db.relationship('Student', back_populates='ap_academic')
 
+    # Foreign Key
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'))
+
     def serialize(self):
         return {
             "id": self.id,
@@ -85,6 +84,7 @@ class Ap_Academic(db.Model):
             "address": self.address,
             "email": self.email
         }
+
 
 class Administrator(db.Model):
     __tablename__ = 'administrator'
@@ -105,6 +105,7 @@ class Administrator(db.Model):
             "email": self.email
         }
 
+
 class Grade(db.Model):
     __tablename__ = 'grade'
     id = db.Column(db.Integer, primary_key=True)
@@ -118,6 +119,7 @@ class Grade(db.Model):
             "date": self.date
         }
 
+
 class Course(db.Model):
     __tablename__ = 'course'
     id = db.Column(db.Integer, primary_key=True)
@@ -128,9 +130,10 @@ class Course(db.Model):
             "id": self.id,
             "course": self.course
         }
-    
+
+
 class Status(db.Model):
-    __tablename__= 'status'
+    __tablename__ = 'status'
     id = db.Column(db.Integer, primary_key=True)
     status = db.Column(db.Integer, nullable=False)
 
@@ -139,9 +142,10 @@ class Status(db.Model):
             "id": self.id,
             "status": self.status
         }
-    
+
+
 class Roll(db.Model):
-    __tablename__= 'roll'
+    __tablename__ = 'roll'
     id = db.Column(db.Integer, primary_key=True)
     status = db.Column(db.Integer, nullable=False)
 
