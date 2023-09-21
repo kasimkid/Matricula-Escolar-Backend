@@ -1,9 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String, Date, ForeignKey
 
-
 db = SQLAlchemy()
-
 
 class Student(db.Model):
     __tablename__ = 'student'
