@@ -1,143 +1,158 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Integer, String, Date, ForeignKey
+from datetime import datetime
 
 db = SQLAlchemy()
 
 class Student(db.Model):
     __tablename__ = 'student'
     id = db.Column(db.Integer, primary_key=True)
-    rut = db.Column(db.Integer, unique=True, nullable=False)
-    password = db.Column(db.String(16))
+    create_use = db.Column(db.DateTime, default=datetime.utcnow)
+    rut_student = db.Column(db.String(12), unique=True, nullable=False)
+    password = db.Column(db.String(16), nullable=False)
     name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     gender = db.Column(db.String(15), nullable=False)
-    birthday = db.Column(db.Date, nullable=False)
+    birthday = db.Column(db.DateTime)
     address = db.Column(db.String(250), nullable=False)
-    email = db.Column(db.String(60), unique=True, nullable=False)
+    email_student = db.Column(db.String(60), unique=True, nullable=False)
     health_system = db.Column(db.String(25), nullable=False)
     observation = db.Column(db.String(250), nullable=True)
-    id_financial = db.relationship('Ap_Financial', uselist=False)
-    id_academic = db.relationship('Ap_Academic')
+    #course_id =db.Column(db.Integer)
 
+    #relationship
+    financial = db.relationship('Apfinancial')
+    academic = db.relationship('Apacademic')
+    grades = db.relationship('Grade')
+    course = db.relationship('Course', secondary='studentcourse')
+    status = db.relationship('Status')
+    roll = db.relationship('Roll')
     def serialize(self):
         return {
             "id": self.id,
-            "rut": self.rut,
+            "rut": self.rut_student,
             "name": self.name,
             "last_name": self.last_name,
             "gender": self.gender,
-            "birthdaadrress": self.birthdaadrress,
+            "birthday": self.birthday,
             "adrress": self.adrress,
-            "email": self.email,
+            "email": self.email_student,
             "health_system": self.health_system,
             "observation": self.observation
         }
-
-class Ap_Financial(db.Model):
-    __tablename__ = 'ap_financial'
+class Apfinancial(db.Model):
+    __tablename__ = 'apfinancial'
     id = db.Column(db.Integer, primary_key=True)
-    rut = db.Column(db.Integer, unique=True, nullable=False)
+    rut_financial = db.Column(db.String(12), unique=True, nullable=False)
     name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     contact_number = db.Column(db.Integer, nullable=False)
     address = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(60), unique=True, nullable=False)
-    id_student = db.Column(db.Integer, db.ForeignKey('student.id'))
-
+    # Foreign Key
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'))
     def serialize(self):
         return {
             "id": self.id,
-            "runame": self.runame,
+            "rut": self.rut_financial,
             "name": self.name,
             "last_name": self.last_name,
             "contact_number": self.contact_number,
             "address": self.address,
             "email": self.email
         }
-
-class Ap_Academic(db.Model):
-    __tablename__ = 'ap_academico'
+class Apacademic(db.Model):
+    __tablename__ = 'apacademic'
     id = db.Column(db.Integer, primary_key=True)
-    rut = db.Column(db.Integer, unique=True, nullable=False)
+    rut_academic = db.Column(db.String(12), unique=True, nullable=False)
     name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     contact_number = db.Column(db.Integer, nullable=False)
     address = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(60), unique=True, nullable=False)
-    id_student = db.Column(db.Integer, db.ForeignKey('student.id'))
-
+     # Foreign Key
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'))
     def serialize(self):
         return {
             "id": self.id,
-            "runame": self.runame,
+            "rut": self.rut_academic,
             "name": self.name,
             "last_name": self.last_name,
             "contact_number": self.contact_number,
             "address": self.address,
             "email": self.email
         }
-
 class Administrator(db.Model):
     __tablename__ = 'administrator'
     id = db.Column(db.Integer, primary_key=True)
-    rut = db.Column(db.Integer, unique=True, nullable=False)
+    rut = db.Column(db.String(12), unique=True, nullable=False)
     password = db.Column(db.String(16), nullable=False)
     name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(60), unique=True, nullable=False)
-
+    # relationship
+    roll = db.relationship('Roll')
+    status = db.relationship('Status')
     def serialize(self):
         return {
             "id": self.id,
             "rut": self.rut,
             "password": self.password,
-            "name": self.name,
-            "last_name": self.last_name,
+            # "name": self.name,
+            # "last_name": self.last_name,
             "email": self.email
         }
-
 class Grade(db.Model):
     __tablename__ = 'grade'
     id = db.Column(db.Integer, primary_key=True)
     grade = db.Column(db.String(20), nullable=False)
-    date = db.Column(db.Date, nullable=False)
-
+    date = db.Column(db.DateTime, nullable=False)
+    # Foreign Key
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'))
+    # relationship
+    #student = db.relationship('Student')
     def serialize(self):
         return {
             "id": self.id,
             "grade": self.grade,
             "date": self.date
         }
-
 class Course(db.Model):
     __tablename__ = 'course'
     id = db.Column(db.Integer, primary_key=True)
-    course = db.Column(db.String, nullable=False)
-
+    course_name = db.Column(db.String(20), nullable=False)
+    # Relationship
+    student = db.relationship('Student', secondary='studentcourse')
     def serialize(self):
         return {
             "id": self.id,
-            "course": self.course
+            "course": self.course_name
         }
-    
 class Status(db.Model):
-    __tablename__= 'status'
+    __tablename__ = 'status'
     id = db.Column(db.Integer, primary_key=True)
     status = db.Column(db.Integer, nullable=False)
-
+    # Foreign Key
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'))
+    administrator_id = db.Column(db.Integer, db.ForeignKey('administrator.id'))
     def serialize(self):
         return {
             "id": self.id,
             "status": self.status
         }
-    
 class Roll(db.Model):
-    __tablename__= 'roll'
+    __tablename__ = 'roll'
     id = db.Column(db.Integer, primary_key=True)
-    status = db.Column(db.Integer, nullable=False)
-
+    roll = db.Column(db.Integer, nullable=False)
+    # Foreign Key
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'))
+    administrator_id = db.Column(db.Integer, db.ForeignKey('administrator.id'))
     def serialize(self):
         return {
             "id": self.id,
             "roll": self.roll
         }
+    
+class StudentCourse(db.Model):
+    __tablename__ = 'studentcourse'
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), primary_key=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), primary_key=True)
