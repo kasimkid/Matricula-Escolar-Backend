@@ -1,26 +1,29 @@
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 
 db = SQLAlchemy()
 
 class Student(db.Model):
     __tablename__ = 'student'
     id = db.Column(db.Integer, primary_key=True)
+    create_use = db.Column(db.DateTime, default=datetime.utcnow)
     rut_student = db.Column(db.String(12), unique=True, nullable=False)
     password = db.Column(db.String(16), nullable=False)
     name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     gender = db.Column(db.String(15), nullable=False)
-    birthday = db.Column(db.DateTime, nullable=False)
+    birthday = db.Column(db.DateTime)
     address = db.Column(db.String(250), nullable=False)
     email_student = db.Column(db.String(60), unique=True, nullable=False)
     health_system = db.Column(db.String(25), nullable=False)
     observation = db.Column(db.String(250), nullable=True)
     #course_id =db.Column(db.Integer)
+
     #relationship
     financial = db.relationship('Apfinancial')
     academic = db.relationship('Apacademic')
     grades = db.relationship('Grade')
-    course = db.relationship('Course')
+    course = db.relationship('Course', secondary='studentcourse')
     status = db.relationship('Status')
     roll = db.relationship('Roll')
     def serialize(self):
@@ -44,7 +47,7 @@ class Apfinancial(db.Model):
     last_name = db.Column(db.String(50), nullable=False)
     contact_number = db.Column(db.Integer, nullable=False)
     address = db.Column(db.String(50), nullable=False)
-    email_financial = db.Column(db.String(60), unique=True, nullable=False)
+    email = db.Column(db.String(60), unique=True, nullable=False)
     # Foreign Key
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'))
     def serialize(self):
@@ -55,12 +58,12 @@ class Apfinancial(db.Model):
             "last_name": self.last_name,
             "contact_number": self.contact_number,
             "address": self.address,
-            "email": self.email_financial
+            "email": self.email
         }
 class Apacademic(db.Model):
     __tablename__ = 'apacademic'
     id = db.Column(db.Integer, primary_key=True)
-    rut = db.Column(db.String(12), unique=True, nullable=False)
+    rut_academic = db.Column(db.String(12), unique=True, nullable=False)
     name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     contact_number = db.Column(db.Integer, nullable=False)
@@ -71,7 +74,7 @@ class Apacademic(db.Model):
     def serialize(self):
         return {
             "id": self.id,
-            "rut": self.rut,
+            "rut": self.rut_academic,
             "name": self.name,
             "last_name": self.last_name,
             "contact_number": self.contact_number,
@@ -94,8 +97,8 @@ class Administrator(db.Model):
             "id": self.id,
             "rut": self.rut,
             "password": self.password,
-            "name": self.name,
-            "last_name": self.last_name,
+            # "name": self.name,
+            # "last_name": self.last_name,
             "email": self.email
         }
 class Grade(db.Model):
@@ -106,7 +109,7 @@ class Grade(db.Model):
     # Foreign Key
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'))
     # relationship
-    student = db.relationship('Student')
+    #student = db.relationship('Student')
     def serialize(self):
         return {
             "id": self.id,
@@ -116,13 +119,13 @@ class Grade(db.Model):
 class Course(db.Model):
     __tablename__ = 'course'
     id = db.Column(db.Integer, primary_key=True)
-    course = db.Column(db.String(20), nullable=False)
-    # Foreign Key
-    student_id = db.Column(db.Integer, db.ForeignKey('student.id'))
+    course_name = db.Column(db.String(20), nullable=False)
+    # Relationship
+    student = db.relationship('Student', secondary='studentcourse')
     def serialize(self):
         return {
             "id": self.id,
-            "course": self.course
+            "course": self.course_name
         }
 class Status(db.Model):
     __tablename__ = 'status'
@@ -139,7 +142,7 @@ class Status(db.Model):
 class Roll(db.Model):
     __tablename__ = 'roll'
     id = db.Column(db.Integer, primary_key=True)
-    status = db.Column(db.Integer, nullable=False)
+    roll = db.Column(db.Integer, nullable=False)
     # Foreign Key
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'))
     administrator_id = db.Column(db.Integer, db.ForeignKey('administrator.id'))
@@ -148,3 +151,8 @@ class Roll(db.Model):
             "id": self.id,
             "roll": self.roll
         }
+    
+class StudentCourse(db.Model):
+    __tablename__ = 'studentcourse'
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), primary_key=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), primary_key=True)

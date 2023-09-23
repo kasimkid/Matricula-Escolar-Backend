@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from models import db, Student, Apfinancial, Apacademic, Administrator, Grade, Course, Status, Roll
 from flask_migrate import Migrate
+from datetime import datetime
 
 #Se instancia nuesta aPP en Flask
 app = Flask(__name__)
@@ -23,8 +24,9 @@ def create_account():
         data = request.get_json()
         user.rut = data["rut"]
         user.password = data["password"]
-        user.email_student = data["email_student"]
-
+        user.name = data["name"]
+        user.last_name = data["last_name"]
+        user.email = data["email"]
 
         db.session.add(user)
         db.session.commit()
@@ -38,21 +40,47 @@ def create_account():
             'msj': 'Student not created',
             'status': "Error"
         }), 404
+    
+@app.route("/create_course", methods=["POST"])
+def create_course():
+    #===INSTANCIA DE LA TABLA
+    user = Course()   #crear instancia
+    #=== CAPTURA DE DATA
+    if user is not None:   
+        data = request.get_json()
+        user.course_name = data["course_name"]
+
+        db.session.add(user)
+        db.session.commit()
+
+        return jsonify({
+            "msj": "Course created",
+            "status": "success"
+        }), 200
+    else:
+        return jsonify({
+            'msj': 'Course not created',
+            'status': "Error"
+        }), 404
 
 @app.route("/update_student", methods=["POST"]) #llenar datos de estudiante
 def update_student():
     user = Student()
     if user is not None:
         data = request.get_json()
+        birth_date = datetime.strptime(data["birthday"], '%Y-%m-%d')
+        user.rut_student = data["rut_student"]
         user.password = data["password"]
         user.name = data["name"]
         user.last_name = data["last_name"]
         user.gender = data["gender"]
-        user.birthday = data["birthday"]
+        user.birthday = birth_date
         user.address = data["address"]
+        user.email_student = data["email_student"]
         user.health_system = data["health_system"]
         user.observation = data["observation"]
 
+        db.session.add(user)
         db.session.commit()
 
         return jsonify({
@@ -70,12 +98,13 @@ def edit_student(id):
     user = Student.query.get(id)
     if user is not None:
         data = request.get_json()
+        birth_date = datetime.strptime(data["birthday"], '%Y-%m-%d')
         #user.rut_student = data["rut_student"]
         user.password = data["password"]
         user.name = data["name"]
         user.last_name = data["last_name"]
         user.gender = data["gender"]
-        user.birthday = data["birthday"]
+        user.birthday = birth_date
         user.address = data["address"]
         #user.email_student = data["email_student"]
         user.health_system = data["health_system"]
@@ -104,8 +133,9 @@ def update_financial():
         user.last_name = data["last_name"]
         user.contact_number = data["contact_number"]
         user.address = data["address"]
-        user.email_financial = data["email_student"]
+        user.email = data["email"]
 
+        db.session.add(user)
         db.session.commit()
 
         return jsonify({
@@ -128,7 +158,7 @@ def edit_financial(id):
         user.last_name = data["last_name"]
         user.contact_number = data["contact_number"]
         user.address = data["address"]
-        user.email_financial = data["email_student"]
+        user.email = data["email"]
 
         db.session.commit()
 
@@ -147,13 +177,14 @@ def update_academic():
     user = Apacademic()
     if user is not None:
         data = request.get_json()
-        user.rut_financial = data["rut_financial"]
+        user.rut_academic = data["rut_academic"]
         user.name = data["name"]
         user.last_name = data["last_name"]
         user.contact_number = data["contact_number"]
         user.address = data["address"]
-        user.email_financial = data["email_student"]
+        user.email = data["email"]
 
+        db.session.add(user)
         db.session.commit()
 
         return jsonify({
@@ -176,7 +207,7 @@ def edit_academic(id):
         user.last_name = data["last_name"]
         user.contact_number = data["contact_number"]
         user.address = data["address"]
-        user.email_financial = data["email_student"]
+        user.email_academic = data["email_academic"]
 
         db.session.commit()
 
@@ -215,8 +246,9 @@ def list_student():
 
 @app.route('/courses')
 def list_course():
-    courses = Course.query.with_entities(Course.course).all()
-    result_courses = [{"course": course} for course in courses]
+    courses = Course.query.with_entities(Course.course_name).all()
+    course_names = [course[0] for course in courses]
+    result_courses = [{"course": course} for course in course_names]
     return jsonify(result_courses)
 
 if __name__ == "__main__":  
