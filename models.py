@@ -23,7 +23,7 @@ class Student(db.Model):
     financial = db.relationship('Apfinancial')
     academic = db.relationship('Apacademic')
     grades = db.relationship('Grade')
-    course = db.relationship('Course', secondary='studentcourse')
+    courses = db.relationship('Course', secondary='studentcourse', back_populates='students')
     status = db.relationship('Status')
     roll = db.relationship('Roll')
     def serialize(self):
@@ -39,6 +39,8 @@ class Student(db.Model):
             "health_system": self.health_system,
             "observation": self.observation
         }
+    
+    
 class Apfinancial(db.Model):
     __tablename__ = 'apfinancial'
     id = db.Column(db.Integer, primary_key=True)
@@ -121,7 +123,7 @@ class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     course_name = db.Column(db.String(20), nullable=False)
     # Relationship
-    student = db.relationship('Student', secondary='studentcourse')
+    students = db.relationship('Student', secondary='studentcourse', back_populates='courses')
     def serialize(self):
         return {
             "id": self.id,
@@ -156,3 +158,16 @@ class StudentCourse(db.Model):
     __tablename__ = 'studentcourse'
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'), primary_key=True)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), primary_key=True)
+
+
+REACT_APP_API_URL=http://localhost:8080
+REACT_APP_API_URL_CREATE_ACCOUNT=/create_account
+REACT_APP_API_URL_CREATE_COURSE=/create_course
+REACT_APP_API_URL_UPDATE_STUDENT=/update_student
+REACT_APP_API_URL_EDIT_STUDENT=/edit_student/<int:id>
+REACT_APP_API_URL_UPDATE_FINANCIAL=/update_financial
+REACT_APP_API_URL_EDIT_FINANCIAL=/edit_financial/<int:id>
+REACT_APP_API_URL_UPDATE_ACADEMIC=/update_academic
+REACT_APP_API_URL_EDIT_ACADEMIC=/edit_academic/<int:id>
+REACT_APP_API_URL_GET_STUDENT=/students
+REACT_APP_API_URL_GET_COURSES=/courses
