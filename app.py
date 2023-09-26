@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from models import db, Student, Apfinancial, Apacademic, Administrator, Grade, Course, Status, Roll
 from flask_migrate import Migrate
 from datetime import datetime
@@ -8,6 +9,7 @@ app = Flask(__name__)
 # print("nombre del archivo",__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///proyect.db"
 db.init_app(app) #coneccion a las base de datos al ajecutar app
+CORS(app)
 migrate = Migrate(app, db)
 
 @app.route("/")
@@ -69,14 +71,14 @@ def update_student():
     if user is not None:
         data = request.get_json()
         birth_date = datetime.strptime(data["birthday"], '%Y-%m-%d')
-        user.rut_student = data["rut_student"]
+        user.rut_student = data["rut"]
         user.password = data["password"]
         user.name = data["name"]
         user.last_name = data["last_name"]
         user.gender = data["gender"]
         user.birthday = birth_date
         user.address = data["address"]
-        user.email_student = data["email_student"]
+        user.email_student = data["email"]
         user.health_system = data["health_system"]
         user.observation = data["observation"]
 
