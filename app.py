@@ -202,12 +202,12 @@ def edit_academic(id):
     user = Apacademic.query.get(id)
     if user is not None:
         data = request.get_json()
-        user.rut_financial = data["rut_financial"]
+        user.rut_academic = data["rut_academic"]
         user.name = data["name"]
         user.last_name = data["last_name"]
         user.contact_number = data["contact_number"]
         user.address = data["address"]
-        user.email_academic = data["email_academic"]
+        user.email = data["email"]
 
         db.session.commit()
 
