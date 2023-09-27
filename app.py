@@ -26,8 +26,9 @@ def create_account():
         data = request.get_json()
         user.rut = data["rut"]
         user.password = data["password"]
-        user.name = data["name"]
-        user.last_name = data["last_name"]
+        #SE DEBE PONER LA OPCION PARA ELEGIR SI LA CUENTA ES ADMIN O USER
+        user.name = data["name"] # Eliminar
+        user.last_name = data["last_name"] # Eliminar
         user.email = data["email"]
 
         db.session.add(user)
