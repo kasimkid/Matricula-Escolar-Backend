@@ -96,7 +96,7 @@ def update_student():
         "status": "error"
     }), 404
 
-@app.route("/edit_student/<int:id>", methods=["PUT"]) #===indicando actualizar por el ID==
+@app.route("/edit_student", methods=["PUT"]) #===indicando actualizar por el ID==
 def edit_student(id):
     user = Student.query.get(id)
     if user is not None:
@@ -151,7 +151,7 @@ def update_financial():
         "status": "error"
     }),404
 
-@app.route("/edit_financial/<int:id>", methods=["PUT"]) #===indicando actualizar por el ID==
+@app.route("/edit_financial", methods=["PUT"]) #===indicando actualizar por el ID==
 def edit_financial(id):
     user = Apfinancial.query.get(id)
     if user is not None:
@@ -198,9 +198,9 @@ def update_academic():
         return jsonify({
         "msj": "Academic not found",
         "status": "error"
-    }),404
+    }), 404
 
-@app.route("/edit_academic/<int:id>", methods=["PUT"]) #===indicando actualizar por el ID==
+@app.route("/edit_academic", methods=["PUT"]) #===indicando actualizar por el ID==
 def edit_academic(id):
     user = Apacademic.query.get(id)
     if user is not None:
@@ -256,5 +256,3 @@ def list_course():
 
 if __name__ == "__main__":  
     app.run(host="localhost", port=8080)
-
-
