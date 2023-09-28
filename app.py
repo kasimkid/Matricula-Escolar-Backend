@@ -137,6 +137,7 @@ def update_financial():
         user.contact_number = data["contact_number"]
         user.address = data["address"]
         user.email = data["email"]
+        user.student_id = data["student_id"]
 
         db.session.add(user)
         db.session.commit()
