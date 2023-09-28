@@ -96,7 +96,7 @@ def update_student():
         "status": "error"
     }), 404
 
-@app.route("/edit_student", methods=["PUT"]) #===indicando actualizar por el ID==
+@app.route("/edit_student/<int:id>", methods=["PUT"]) #===indicando actualizar por el ID==
 def edit_student(id):
     user = Student.query.get(id)
     if user is not None:
