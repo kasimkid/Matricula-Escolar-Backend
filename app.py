@@ -26,8 +26,9 @@ def create_account():
         data = request.get_json()
         user.rut = data["rut"]
         user.password = data["password"]
-        user.name = data["name"]
-        user.last_name = data["last_name"]
+        #SE DEBE PONER LA OPCION PARA ELEGIR SI LA CUENTA ES ADMIN O USER
+        user.name = data["name"] # Eliminar
+        user.last_name = data["last_name"] # Eliminar
         user.email = data["email"]
 
         db.session.add(user)
@@ -95,7 +96,7 @@ def update_student():
         "status": "error"
     }), 404
 
-@app.route("/edit_student/<int:id>", methods=["PUT"]) #===indicando actualizar por el ID==
+@app.route("/edit_student", methods=["PUT"]) #===indicando actualizar por el ID==
 def edit_student(id):
     user = Student.query.get(id)
     if user is not None:
@@ -150,7 +151,7 @@ def update_financial():
         "status": "error"
     }),404
 
-@app.route("/edit_financial/<int:id>", methods=["PUT"]) #===indicando actualizar por el ID==
+@app.route("/edit_financial", methods=["PUT"]) #===indicando actualizar por el ID==
 def edit_financial(id):
     user = Apfinancial.query.get(id)
     if user is not None:
@@ -197,19 +198,19 @@ def update_academic():
         return jsonify({
         "msj": "Academic not found",
         "status": "error"
-    }),404
+    }), 404
 
-@app.route("/edit_academic/<int:id>", methods=["PUT"]) #===indicando actualizar por el ID==
+@app.route("/edit_academic", methods=["PUT"]) #===indicando actualizar por el ID==
 def edit_academic(id):
     user = Apacademic.query.get(id)
     if user is not None:
         data = request.get_json()
-        user.rut_financial = data["rut_financial"]
+        user.rut_academic = data["rut_academic"]
         user.name = data["name"]
         user.last_name = data["last_name"]
         user.contact_number = data["contact_number"]
         user.address = data["address"]
-        user.email_academic = data["email_academic"]
+        user.email = data["email"]
 
         db.session.commit()
 
@@ -255,5 +256,3 @@ def list_course():
 
 if __name__ == "__main__":  
     app.run(host="localhost", port=8080)
-
-

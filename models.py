@@ -55,7 +55,7 @@ class Apfinancial(db.Model):
     def serialize(self):
         return {
             "id": self.id,
-            "rut": self.rut_financial,
+            "rut_financial": self.rut_financial,
             "name": self.name,
             "last_name": self.last_name,
             "contact_number": self.contact_number,
@@ -76,7 +76,7 @@ class Apacademic(db.Model):
     def serialize(self):
         return {
             "id": self.id,
-            "rut": self.rut_academic,
+            "rut_academic": self.rut_academic,
             "name": self.name,
             "last_name": self.last_name,
             "contact_number": self.contact_number,
