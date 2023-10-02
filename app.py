@@ -4,6 +4,9 @@ from models import db, Student, Apfinancial, Apacademic, Administrator, Grade, C
 from flask_migrate import Migrate
 from datetime import datetime
 from sqlalchemy.orm import joinedload
+import cloudinary
+import cloudinary.uploader
+from cloudinary import api
 
 # Se instancia nuesta aPP en Flask
 app = Flask(__name__)
@@ -13,11 +16,17 @@ db.init_app(app)  # coneccion a las base de datos al ajecutar app
 CORS(app)
 migrate = Migrate(app, db)
 
+import cloudinary
+          
+cloudinary.config( 
+  cloud_name = "dgrm2fgup", 
+  api_key = "828124437397977", 
+  api_secret = "trXGhrO3Eugdpq4EW3bGfvpvaws" 
+)
 
 @app.route("/")
 def home():
     return "<h1>Probando flask<h1/>"
-
 
 @app.route("/create_account", methods=["POST"])
 def create_account():
@@ -46,7 +55,6 @@ def create_account():
             'status': "Error"
         }), 404
 
-
 @app.route("/create_course", methods=["POST"])
 def create_course():
     # ===INSTANCIA DE LA TABLA
@@ -68,7 +76,6 @@ def create_course():
             'msj': 'Course not created',
             'status': "Error"
         }), 404
-
 
 @app.route("/update_student", methods=["POST"])  # llenar datos de estudiante
 def update_student():
@@ -99,7 +106,30 @@ def update_student():
             "msj": "not found",
             "status": "error"
         }), 404
+    
+@app.route('/upload', methods=['POST'])
+def upload():
+  if 'file' not in request.files:
+    return jsonify({'error': 'no file'}), 400
+  
+  file = request.files['file']
 
+  try:
+    response = cloudinary.uploader.upload(file, folder='uploads')
+
+    return jsonify({'message': 'file uploaded', 'url': response['secure_url']}), 200
+  
+  except Exception as error:
+    return jsonify({'error': error}), 500
+
+@app.route('/images', methods=['GET'])
+def get_images():
+  try:
+    response = api.resources(type='upload', prefix='uploads/')
+
+    return jsonify({'message': 'images retrieved', "images": response['resources']}), 200
+  except Exception as error:
+    return jsonify({'error': error}), 500
 
 # ===indicando actualizar por el ID==
 @app.route("/edit_student/<int:id>", methods=["PUT"])
@@ -133,7 +163,6 @@ def edit_student(id):
             "status": "error"
         }), 404
 
-
 @app.route("/update_financial", methods=["POST"])
 def update_financial():
     user = Apfinancial()
@@ -159,7 +188,6 @@ def update_financial():
             "msj": "Financial not found",
             "status": "error"
         }), 404
-
 
 # ===indicando actualizar por el ID==
 @app.route("/edit_financial", methods=["PUT"])
@@ -187,7 +215,6 @@ def edit_financial(id):
             "status": "error"
         }), 404
 
-
 @app.route("/update_academic", methods=["POST"])
 def update_academic():
     user = Apacademic()
@@ -213,7 +240,6 @@ def update_academic():
             "msj": "Academic not found",
             "status": "error"
         }), 404
-
 
 # ===indicando actualizar por el ID==
 @app.route("/edit_academic", methods=["PUT"])
@@ -241,7 +267,6 @@ def edit_academic(id):
             "status": "error"
         }), 404
 
-
 @app.route("/delete_user/<int:id>", methods=["DELETE"])
 def delete_user(id):
     user = Administrator.query.get(id)
@@ -265,14 +290,12 @@ def delete_user(id):
 #     result_students = [{"id": id, "rut": rut, "name": nombre, "last_name": apellido} for id, rut, nombre, apellido in students]
 #     return jsonify(result_students)
 
-
 @app.route('/courses')
 def list_course():
     courses = Course.query.with_entities(Course.course_name).all()
     course_names = [course[0] for course in courses]
     result_courses = [{"course": course} for course in course_names]
     return jsonify(result_courses)
-
 
 @app.route('/students')
 def list_student():
@@ -310,7 +333,9 @@ def list_student():
 
     return jsonify(result_students)
 
-
+@app.images
+def images():
+    return 'images'
 
 if __name__ == "__main__":
     app.run(host="localhost", port=8080, debug=True)
