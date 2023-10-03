@@ -1,4 +1,4 @@
-from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy   
 from datetime import datetime
 
 db = SQLAlchemy()
@@ -18,8 +18,8 @@ class Student(db.Model):
     health_system = db.Column(db.String(25), nullable=False)
     observation = db.Column(db.String(250), nullable=True)
     # Foreign Key
-    roll_id = db.Column(db.Integer, db.ForeignKey('roll.id'))
-    status_id = db.Column(db.Integer, db.ForeignKey('status.id'))
+    # roll_id = db.Column(db.Integer, db.ForeignKey('roll.id'))
+    # status_id = db.Column(db.Integer, db.ForeignKey('status.id'))
     # Relationship
     financial = db.relationship('Apfinancial')
     academic = db.relationship('Apacademic')
@@ -134,8 +134,8 @@ class Status(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     status = db.Column(db.Integer, nullable=False)
     # Relationship
-    student = db.relationship('Student', back_populates="status", cascade="all, delete-orphan", single_parent=True)
-    administrator = db.relationship('Administrator', back_populates="status", cascade="all, delete-orphan", single_parent=True)
+    # student = db.relationship('Student', back_populates="status", cascade="all, delete-orphan", single_parent=True)
+    # administrator = db.relationship('Administrator', back_populates="status", cascade="all, delete-orphan", single_parent=True)
     def serialize(self):
         return {
             "id": self.id,

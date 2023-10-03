@@ -160,13 +160,9 @@ def update_financial():
             "status": "error"
         }), 404
 
-<<<<<<< HEAD
-@app.route("/edit_financial/<int:id>", methods=["PUT"]) #===indicando actualizar por el ID==
-=======
 
 # ===indicando actualizar por el ID==
 @app.route("/edit_financial", methods=["PUT"])
->>>>>>> 6315ff76333b003395a41794b0d6e4a7a4c74ad5
 def edit_financial(id):
     user = Apfinancial.query.get(id)
     if user is not None:
@@ -218,13 +214,9 @@ def update_academic():
             "status": "error"
         }), 404
 
-<<<<<<< HEAD
-@app.route("/edit_academic/<int:id>", methods=["PUT"]) #===indicando actualizar por el ID==
-=======
 
 # ===indicando actualizar por el ID==
 @app.route("/edit_academic", methods=["PUT"])
->>>>>>> 6315ff76333b003395a41794b0d6e4a7a4c74ad5
 def edit_academic(id):
     user = Apacademic.query.get(id)
     if user is not None:
