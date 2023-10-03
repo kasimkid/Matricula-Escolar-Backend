@@ -5,8 +5,9 @@ from flask_migrate import Migrate
 from datetime import datetime
 from sqlalchemy.orm import joinedload
 import cloudinary
-import cloudinary.uploader
+from cloudinary.uploader import upload
 from cloudinary import api
+from werkzeug.utils import secure_filename
 
 # Se instancia nuesta aPP en Flask
 app = Flask(__name__)
@@ -15,9 +16,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///proyect.db"
 db.init_app(app)  # coneccion a las base de datos al ajecutar app
 CORS(app)
 migrate = Migrate(app, db)
-
-import cloudinary
-          
+       
 cloudinary.config( 
   cloud_name = "dgrm2fgup", 
   api_key = "828124437397977", 
@@ -110,12 +109,12 @@ def update_student():
 @app.route('/upload', methods=['POST'])
 def upload():
   if 'file' not in request.files:
-    return jsonify({'error': 'no file'}), 400
+    return jsonify({'error': 'not file'}), 400
   
-  file = request.files['file']
+  file = request.files['image']
 
   try:
-    response = cloudinary.uploader.upload(file, folder='uploads')
+    response = upload(file, folder='uploads')
 
     return jsonify({'message': 'file uploaded', 'url': response['secure_url']}), 200
   
@@ -333,9 +332,6 @@ def list_student():
 
     return jsonify(result_students)
 
-@app.images
-def images():
-    return 'images'
 
 if __name__ == "__main__":
     app.run(host="localhost", port=8080, debug=True)
