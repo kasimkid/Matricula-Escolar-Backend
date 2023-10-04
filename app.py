@@ -115,9 +115,9 @@ def upload_img():
     if 'image' not in request.files:
         return jsonify({'error': 'not file'}), 400
 
-    file = request.files['image']   
+    file = request.files["image"]   
     try:
-        response = upload(file.stream, use_filename = True, unique_filename = False)
+        response = upload(file, folder='uploads', use_filename = True, unique_filename = True)
         return jsonify({'message': 'file uploaded', 'url': response['secure_url']}), 200
     except Exception as error:
         return jsonify({'error': error}), 500
