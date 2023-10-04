@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 0ca714da29be
+Revision ID: 9c7c71d04fe2
 Revises: 
-Create Date: 2023-09-30 11:48:09.781597
+Create Date: 2023-10-03 21:35:41.106951
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '0ca714da29be'
+revision = '9c7c71d04fe2'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -33,6 +33,23 @@ def upgrade():
     sa.Column('status', sa.Integer(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('student',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('create_use', sa.DateTime(), nullable=True),
+    sa.Column('rut_student', sa.String(length=12), nullable=False),
+    sa.Column('password', sa.String(length=16), nullable=False),
+    sa.Column('name', sa.String(length=50), nullable=False),
+    sa.Column('last_name', sa.String(length=50), nullable=False),
+    sa.Column('gender', sa.String(length=15), nullable=False),
+    sa.Column('birthday', sa.DateTime(), nullable=True),
+    sa.Column('address', sa.String(length=250), nullable=False),
+    sa.Column('email_student', sa.String(length=60), nullable=False),
+    sa.Column('health_system', sa.String(length=25), nullable=False),
+    sa.Column('observation', sa.String(length=250), nullable=True),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('email_student'),
+    sa.UniqueConstraint('rut_student')
+    )
     op.create_table('administrator',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('rut', sa.String(length=12), nullable=False),
@@ -47,27 +64,6 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email'),
     sa.UniqueConstraint('rut')
-    )
-    op.create_table('student',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('create_use', sa.DateTime(), nullable=True),
-    sa.Column('rut_student', sa.String(length=12), nullable=False),
-    sa.Column('password', sa.String(length=16), nullable=False),
-    sa.Column('name', sa.String(length=50), nullable=False),
-    sa.Column('last_name', sa.String(length=50), nullable=False),
-    sa.Column('gender', sa.String(length=15), nullable=False),
-    sa.Column('birthday', sa.DateTime(), nullable=True),
-    sa.Column('address', sa.String(length=250), nullable=False),
-    sa.Column('email_student', sa.String(length=60), nullable=False),
-    sa.Column('health_system', sa.String(length=25), nullable=False),
-    sa.Column('observation', sa.String(length=250), nullable=True),
-    sa.Column('roll_id', sa.Integer(), nullable=True),
-    sa.Column('status_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['roll_id'], ['roll.id'], ),
-    sa.ForeignKeyConstraint(['status_id'], ['status.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('email_student'),
-    sa.UniqueConstraint('rut_student')
     )
     op.create_table('apacademic',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -121,8 +117,8 @@ def downgrade():
     op.drop_table('grade')
     op.drop_table('apfinancial')
     op.drop_table('apacademic')
-    op.drop_table('student')
     op.drop_table('administrator')
+    op.drop_table('student')
     op.drop_table('status')
     op.drop_table('roll')
     op.drop_table('course')
