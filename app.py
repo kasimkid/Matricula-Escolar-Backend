@@ -16,7 +16,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///proyect.db"
 db.init_app(app)  # coneccion a las base de datos al ajecutar app
 CORS(app)
 migrate = Migrate(app, db)
-       
+        
 cloudinary.config( 
   cloud_name = "dgrm2fgup", 
   api_key = "828124437397977", 
@@ -26,6 +26,7 @@ cloudinary.config(
 @app.route("/")
 def home():
     return "<h1>Probando flask<h1/>"
+
 
 @app.route("/create_account", methods=["POST"])
 def create_account():
@@ -54,6 +55,7 @@ def create_account():
             'status': "Error"
         }), 404
 
+
 @app.route("/create_course", methods=["POST"])
 def create_course():
     # ===INSTANCIA DE LA TABLA
@@ -75,6 +77,7 @@ def create_course():
             'msj': 'Course not created',
             'status': "Error"
         }), 404
+
 
 @app.route("/update_student", methods=["POST"])  # llenar datos de estudiante
 def update_student():
@@ -105,32 +108,33 @@ def update_student():
             "msj": "not found",
             "status": "error"
         }), 404
-    
+
+
 @app.route('/upload', methods=['POST'])
-def upload():
-  if 'file' not in request.files:
-    return jsonify({'error': 'not file'}), 400
-  
-  file = request.files['image']
+def upload_img():
+    if 'image' not in request.files:
+        return jsonify({'error': 'not file'}), 400
 
-  try:
-    response = upload(file, folder='uploads')
+    file = request.files['image']   
+    try:
+        response = upload(file.stream, use_filename = True, unique_filename = False)
+        return jsonify({'message': 'file uploaded', 'url': response['secure_url']}), 200
+    except Exception as error:
+        return jsonify({'error': error}), 500
 
-    return jsonify({'message': 'file uploaded', 'url': response['secure_url']}), 200
-  
-  except Exception as error:
-    return jsonify({'error': error}), 500
 
 @app.route('/images', methods=['GET'])
 def get_images():
-  try:
-    response = api.resources(type='upload', prefix='uploads/')
+    try:
+        response = api.resources(type='upload', prefix='uploads/')
 
-    return jsonify({'message': 'images retrieved', "images": response['resources']}), 200
-  except Exception as error:
-    return jsonify({'error': error}), 500
+        return jsonify({'message': 'images retrieved', "images": response['resources']}), 200
+    except Exception as error:
+        return jsonify({'error': error}), 500
 
 # ===indicando actualizar por el ID==
+
+
 @app.route("/edit_student/<int:id>", methods=["PUT"])
 def edit_student(id):
     user = Student.query.get(id)
@@ -162,6 +166,7 @@ def edit_student(id):
             "status": "error"
         }), 404
 
+
 @app.route("/update_financial", methods=["POST"])
 def update_financial():
     user = Apfinancial()
@@ -189,6 +194,8 @@ def update_financial():
         }), 404
 
 # ===indicando actualizar por el ID==
+
+
 @app.route("/edit_financial", methods=["PUT"])
 def edit_financial(id):
     user = Apfinancial.query.get(id)
@@ -213,6 +220,7 @@ def edit_financial(id):
             "msj": "Financial not found",
             "status": "error"
         }), 404
+
 
 @app.route("/update_academic", methods=["POST"])
 def update_academic():
@@ -241,6 +249,8 @@ def update_academic():
         }), 404
 
 # ===indicando actualizar por el ID==
+
+
 @app.route("/edit_academic", methods=["PUT"])
 def edit_academic(id):
     user = Apacademic.query.get(id)
@@ -266,6 +276,7 @@ def edit_academic(id):
             "status": "error"
         }), 404
 
+
 @app.route("/delete_user/<int:id>", methods=["DELETE"])
 def delete_user(id):
     user = Administrator.query.get(id)
@@ -289,12 +300,14 @@ def delete_user(id):
 #     result_students = [{"id": id, "rut": rut, "name": nombre, "last_name": apellido} for id, rut, nombre, apellido in students]
 #     return jsonify(result_students)
 
+
 @app.route('/courses')
 def list_course():
     courses = Course.query.with_entities(Course.course_name).all()
     course_names = [course[0] for course in courses]
     result_courses = [{"course": course} for course in course_names]
     return jsonify(result_courses)
+
 
 @app.route('/students')
 def list_student():
