@@ -17,6 +17,7 @@ class Student(db.Model):
     email_student = db.Column(db.String(60), unique=True, nullable=False)
     health_system = db.Column(db.String(25), nullable=False)
     observation = db.Column(db.String(250), nullable=True)
+    url_img = db.Column(db.String(750), nullable=True)
     # Foreign Key
     # roll_id = db.Column(db.Integer, db.ForeignKey('roll.id'))
     # status_id = db.Column(db.Integer, db.ForeignKey('status.id'))
@@ -37,7 +38,8 @@ class Student(db.Model):
             "adrress": self.adrress,
             "email": self.email_student,
             "health_system": self.health_system,
-            "observation": self.observation
+            "observation": self.observation,
+            "img": self.url_img
         }
     
 class Apfinancial(db.Model):

@@ -4,6 +4,10 @@ from models import db, Student, Apfinancial, Apacademic, Administrator, Grade, C
 from flask_migrate import Migrate
 from datetime import datetime
 from sqlalchemy.orm import joinedload
+import cloudinary
+from cloudinary.uploader import upload
+from cloudinary import api
+from werkzeug.utils import secure_filename
 
 # Se instancia nuesta aPP en Flask
 app = Flask(__name__)
@@ -12,7 +16,12 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///proyect.db"
 db.init_app(app)  # coneccion a las base de datos al ajecutar app
 CORS(app)
 migrate = Migrate(app, db)
-
+        
+cloudinary.config( 
+  cloud_name = "dgrm2fgup", 
+  api_key = "828124437397977", 
+  api_secret = "trXGhrO3Eugdpq4EW3bGfvpvaws" 
+)
 
 @app.route("/")
 def home():
@@ -101,7 +110,31 @@ def update_student():
         }), 404
 
 
+@app.route('/upload', methods=['POST'])
+def upload_img():
+    if 'image' not in request.files:
+        return jsonify({'error': 'not file'}), 400
+
+    file = request.files['image']   
+    try:
+        response = upload(file.stream, use_filename = True, unique_filename = False)
+        return jsonify({'message': 'file uploaded', 'url': response['secure_url']}), 200
+    except Exception as error:
+        return jsonify({'error': error}), 500
+
+
+@app.route('/images', methods=['GET'])
+def get_images():
+    try:
+        response = api.resources(type='upload', prefix='uploads/')
+
+        return jsonify({'message': 'images retrieved', "images": response['resources']}), 200
+    except Exception as error:
+        return jsonify({'error': error}), 500
+
 # ===indicando actualizar por el ID==
+
+
 @app.route("/edit_student/<int:id>", methods=["PUT"])
 def edit_student(id):
     user = Student.query.get(id)
@@ -160,8 +193,9 @@ def update_financial():
             "status": "error"
         }), 404
 
-
 # ===indicando actualizar por el ID==
+
+
 @app.route("/edit_financial", methods=["PUT"])
 def edit_financial(id):
     user = Apfinancial.query.get(id)
@@ -214,8 +248,9 @@ def update_academic():
             "status": "error"
         }), 404
 
-
 # ===indicando actualizar por el ID==
+
+
 @app.route("/edit_academic", methods=["PUT"])
 def edit_academic(id):
     user = Apacademic.query.get(id)
@@ -309,7 +344,6 @@ def list_student():
         print(student_data)
 
     return jsonify(result_students)
-
 
 
 if __name__ == "__main__":
