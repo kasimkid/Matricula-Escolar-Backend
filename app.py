@@ -8,6 +8,10 @@ import cloudinary
 from cloudinary.uploader import upload
 from cloudinary import api
 from werkzeug.utils import secure_filename
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # Se instancia nuesta aPP en Flask
 app = Flask(__name__)
@@ -18,9 +22,9 @@ CORS(app)
 migrate = Migrate(app, db)
         
 cloudinary.config( 
-  cloud_name = "dgrm2fgup", 
-  api_key = "828124437397977", 
-  api_secret = "trXGhrO3Eugdpq4EW3bGfvpvaws" 
+    cloud_name=os.getenv('CLOUD_NAME'),
+    api_key=os.getenv('API_KEY'),
+    api_secret=os.getenv('API_SECRET')
 )
 
 @app.route("/")
@@ -95,6 +99,7 @@ def update_student():
         user.email_student = data["email"]
         user.health_system = data["health_system"]
         user.observation = data["observation"]
+        user.url_img = data["url_img"]
 
         db.session.add(user)
         db.session.commit()
@@ -118,7 +123,13 @@ def upload_img():
     file = request.files["image"]   
     try:
         response = upload(file, folder='uploads', use_filename = True, unique_filename = True)
-        return jsonify({'message': 'file uploaded', 'url': response['secure_url']}), 200
+        url_image = response['secure_url']
+        student_id = request.form.get('student_id')
+        student = Student.query.get(student_id)
+        if student:
+            student.url_img = url_image
+            db.session.commit()
+        return jsonify({'message': 'file uploaded', 'url': url_image}), 200
     except Exception as error:
         return jsonify({'error': error}), 500
 
