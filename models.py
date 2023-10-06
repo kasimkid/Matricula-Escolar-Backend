@@ -19,8 +19,8 @@ class Student(db.Model):
     observation = db.Column(db.String(250), nullable=True)
     url_img = db.Column(db.String(750), nullable=True)
     # Foreign Key
-    # roll_id = db.Column(db.Integer, db.ForeignKey('roll.id'))
-    # status_id = db.Column(db.Integer, db.ForeignKey('status.id'))
+    roll_id = db.Column(db.Integer, db.ForeignKey('roll.id'))
+    status_id = db.Column(db.Integer, db.ForeignKey('status.id'))
     # Relationship
     financial = db.relationship('Apfinancial')
     academic = db.relationship('Apacademic')
