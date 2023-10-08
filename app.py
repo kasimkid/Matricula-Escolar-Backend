@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from models import db, Student, Apfinancial, Apacademic, Administrator, Grade, Course, Status, Roll
+from models import db, Student, Apfinancial, Apacademic, Administrator, Grade, Course, Status
 from flask_migrate import Migrate
 from datetime import datetime
 from sqlalchemy.orm import joinedload
@@ -10,6 +10,8 @@ from cloudinary import api
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 import os
+from flask_bcrypt import Bcrypt
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
 
 load_dotenv()
 
@@ -17,15 +19,20 @@ load_dotenv()
 app = Flask(__name__)
 # print("nombre del archivo",__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///proyect.db"
+app.config["JWT_SECRET_KEY"] = os.getenv('JWT_SECRET_KEY')
+app.config["SECRET_KEY"] = os.getenv('SECRET_KEY')
 db.init_app(app)  # coneccion a las base de datos al ajecutar app
 CORS(app)
 migrate = Migrate(app, db)
-        
-cloudinary.config( 
+jwt = JWTManager(app)
+bcrypt = Bcrypt(app)
+
+cloudinary.config(
     cloud_name=os.getenv('CLOUD_NAME'),
     api_key=os.getenv('API_KEY'),
     api_secret=os.getenv('API_SECRET')
 )
+
 
 @app.route("/")
 def home():
@@ -33,6 +40,7 @@ def home():
 
 
 @app.route("/create_account", methods=["POST"])
+@jwt_required()
 def create_account():
     # ===INSTANCIA DE LA TABLA
     user = Administrator()  # crear instancia
@@ -40,11 +48,12 @@ def create_account():
     if user is not None:
         data = request.get_json()
         user.rut = data["rut"]
-        user.password = data["password"]
-        # SE DEBE PONER LA OPCION PARA ELEGIR SI LA CUENTA ES ADMIN O USER
-        user.name = data["name"]  # Eliminar
-        user.last_name = data["last_name"]  # Eliminar
+        password = bcrypt.generate_password_hash(data["password"])
+        user.password = password
+        user.name = data["name"]
+        user.last_name = data["last_name"]
         user.email = data["email"]
+        user.roll = 1
 
         db.session.add(user)
         db.session.commit()
@@ -82,15 +91,66 @@ def create_course():
             'status': "Error"
         }), 404
 
+@app.route("/login", methods=["POST"])
+def login_user():
+    data = request.get_json()
+    user = Student.query.filter_by(rut_student=data["rut"]).first()
+    if user is None:
+        user = Administrator.query.filter_by(rut=data["rut"]).first()
+    if user is not None:
+        is_valid = bcrypt.check_password_hash(user.password, data["password"])
+        if is_valid:
+            access_token = create_access_token(data["rut"])
+            return jsonify({
+                "access_token": access_token,
+                "data": user.serialize()
+            }), 200
+        else:
+            return jsonify({
+                "msg": "Usuario o clave invalidos",
+                "status": "unauthorized"
+            }), 401
+    else:
+        return jsonify({
+            "msg": "Usuario o clave invalidos",
+            "status": "unauthorized"
+        }), 401
 
-@app.route("/update_student", methods=["POST"])  # llenar datos de estudiante
+@app.route("/login_admin", methods=["POST"])
+def login_admin():
+    data = request.get_json()
+    user = Administrator.query.filter_by(rut=data["rut"]).first()
+    # return jsonify({"user": user.serialize()})
+    if user is not None:
+        is_valid = bcrypt.check_password_hash(user.password, data["password"])
+        if is_valid:
+            access_token = create_access_token(data["rut"])
+            return jsonify({
+                "access_token": access_token,
+                "data": user.serialize()
+            }), 200
+        else:
+            return jsonify({
+                "msg": "Usuario o clave invalidos",
+                "status": "unauthorized"
+            }), 401
+    else:
+        return jsonify({
+            "msg": "Usuario o clave invalidos",
+            "status": "unauthorized"
+        }), 401
+
+
+@app.route("/update_student", methods=["POST"])
+@jwt_required()
 def update_student():
     user = Student()
     if user is not None:
         data = request.get_json()
         birth_date = datetime.strptime(data["birthday"], '%Y-%m-%d')
         user.rut_student = data["rut"]
-        user.password = data["password"]
+        password = bcrypt.generate_password_hash(data["password"])
+        user.password = password
         user.name = data["name"]
         user.last_name = data["last_name"]
         user.gender = data["gender"]
@@ -100,6 +160,7 @@ def update_student():
         user.health_system = data["health_system"]
         user.observation = data["observation"]
         user.url_img = data["url_img"]
+        user.roll = 2
 
         db.session.add(user)
         db.session.commit()
@@ -120,9 +181,10 @@ def upload_img():
     if 'image' not in request.files:
         return jsonify({'error': 'not file'}), 400
 
-    file = request.files["image"]   
+    file = request.files["image"]
     try:
-        response = upload(file, folder='uploads', use_filename = True, unique_filename = True)
+        response = upload(file, folder='uploads',
+                          use_filename=True, unique_filename=True)
         url_image = response['secure_url']
         student_id = request.form.get('student_id')
         student = Student.query.get(student_id)

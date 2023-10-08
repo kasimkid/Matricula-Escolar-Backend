@@ -18,8 +18,9 @@ class Student(db.Model):
     health_system = db.Column(db.String(25), nullable=False)
     observation = db.Column(db.String(250), nullable=True)
     url_img = db.Column(db.String(750), nullable=True)
+    roll = db.Column(db.Integer, nullable=False)
     # Foreign Key
-    roll_id = db.Column(db.Integer, db.ForeignKey('roll.id'))
+    # roll_id = db.Column(db.Integer, db.ForeignKey('roll.id'))
     status_id = db.Column(db.Integer, db.ForeignKey('status.id'))
     # Relationship
     financial = db.relationship('Apfinancial')
@@ -27,7 +28,7 @@ class Student(db.Model):
     grades = db.relationship('Grade')
     courses = db.relationship('Course', secondary='studentcourse', back_populates='students')
     status = db.relationship('Status', back_populates='students')
-    roll = db.relationship('Roll', back_populates='students')
+    # roll = db.relationship('Roll', back_populates='students')
     
     def serialize(self):
         return {
@@ -37,11 +38,12 @@ class Student(db.Model):
             "last_name": self.last_name,
             "gender": self.gender,
             "birthday": self.birthday,
-            "adrress": self.adrress,
+            "address": self.address,
             "email": self.email_student,
             "health_system": self.health_system,
             "observation": self.observation,
-            "img": self.url_img
+            "img": self.url_img,
+            "roll": self.roll
         }
     
 class Apfinancial(db.Model):
@@ -94,20 +96,22 @@ class Administrator(db.Model):
     name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(60), unique=True, nullable=False)
+    roll = db.Column(db.Integer, nullable=False)
+
     # Foreign Key
-    roll_id = db.Column(db.Integer, db.ForeignKey('roll.id'))
+    # roll_id = db.Column(db.Integer, db.ForeignKey('roll.id'))
     status_id = db.Column(db.Integer, db.ForeignKey('status.id'))
     # Relationship
     status = db.relationship('Status', back_populates='administrator')
-    roll = db.relationship('Roll', back_populates='administrator')
+    # roll = db.relationship('Roll', back_populates='administrator')
     def serialize(self):
         return {
             "id": self.id,
             "rut": self.rut,
-            "password": self.password,
-            # "name": self.name,
-            # "last_name": self.last_name,
-            "email": self.email
+            "name": self.name,
+            "last_name": self.last_name,
+            "email": self.email,
+            "roll": self.roll
         }
 class Grade(db.Model):
     __tablename__ = 'grade'
@@ -147,20 +151,20 @@ class Status(db.Model):
             "id": self.id,
             "status": self.status
         }
-class Roll(db.Model):
-    __tablename__ = 'roll'
-    id = db.Column(db.Integer, primary_key=True)
-    roll = db.Column(db.Integer, nullable=False)
-    # Foreign Key
+# class Roll(db.Model):
+#     __tablename__ = 'roll'
+#     id = db.Column(db.Integer, primary_key=True)
+#     roll = db.Column(db.Integer, nullable=False)
+#     # Foreign Key
     
-    # Relationship
-    administrator = db.relationship('Administrator', back_populates='roll', cascade="all, delete-orphan", single_parent=True)
-    students = db.relationship('Student', back_populates='roll')
-    def serialize(self):
-        return {
-            "id": self.id,
-            "roll": self.roll
-        }
+#     # Relationship
+#     administrator = db.relationship('Administrator', back_populates='roll', cascade="all, delete-orphan", single_parent=True)
+#     students = db.relationship('Student', back_populates='roll')
+#     def serialize(self):
+#         return {
+#             "id": self.id,
+#             "roll": self.roll
+#         }
 class StudentCourse(db.Model):
     __tablename__ = 'studentcourse'
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'), primary_key=True)

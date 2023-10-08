@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: b0e14bdd6743
+Revision ID: 85b8237f3e35
 Revises: 
-Create Date: 2023-10-04 15:38:56.143062
+Create Date: 2023-10-07 15:32:38.377567
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'b0e14bdd6743'
+revision = '85b8237f3e35'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -21,11 +21,6 @@ def upgrade():
     op.create_table('course',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('course_name', sa.String(length=20), nullable=False),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_table('roll',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('roll', sa.Integer(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('status',
@@ -40,9 +35,8 @@ def upgrade():
     sa.Column('name', sa.String(length=50), nullable=False),
     sa.Column('last_name', sa.String(length=50), nullable=False),
     sa.Column('email', sa.String(length=60), nullable=False),
-    sa.Column('roll_id', sa.Integer(), nullable=True),
+    sa.Column('roll', sa.Integer(), nullable=False),
     sa.Column('status_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['roll_id'], ['roll.id'], ),
     sa.ForeignKeyConstraint(['status_id'], ['status.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email'),
@@ -62,9 +56,8 @@ def upgrade():
     sa.Column('health_system', sa.String(length=25), nullable=False),
     sa.Column('observation', sa.String(length=250), nullable=True),
     sa.Column('url_img', sa.String(length=750), nullable=True),
-    sa.Column('roll_id', sa.Integer(), nullable=True),
+    sa.Column('roll', sa.Integer(), nullable=False),
     sa.Column('status_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['roll_id'], ['roll.id'], ),
     sa.ForeignKeyConstraint(['status_id'], ['status.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email_student'),
@@ -125,6 +118,5 @@ def downgrade():
     op.drop_table('student')
     op.drop_table('administrator')
     op.drop_table('status')
-    op.drop_table('roll')
     op.drop_table('course')
     # ### end Alembic commands ###
