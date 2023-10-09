@@ -390,8 +390,10 @@ def list_student():
             Student.rut_student,
             Student.name,
             Student.last_name,
+            Apacademic.id.label('apacademic_id'),
             Apacademic.name.label('apacademic_name'),
             Apacademic.last_name.label('apacademic_last_name'),
+            Apfinancial.id.label('apfinancial_id'),
             Apfinancial.name.label('apfinancial_name'),
             Apfinancial.last_name.label('apfinancial_last_name')
         ) \
