@@ -40,7 +40,7 @@ def home():
 
 
 @app.route("/create_account", methods=["POST"])
-@jwt_required()
+# @jwt_required()
 def create_account():
     # ===INSTANCIA DE LA TABLA
     user = Administrator()  # crear instancia
@@ -53,7 +53,7 @@ def create_account():
         user.name = data["name"]
         user.last_name = data["last_name"]
         user.email = data["email"]
-        user.roll = 1
+        user.roll = data["roll"]
 
         db.session.add(user)
         db.session.commit()
@@ -404,14 +404,16 @@ def list_student():
     print("SQL Query:", str(students))
     result_students = []
 
-    for id, rut, name, last_name, apacademic_name, apacademic_last_name, apfinancial_name, apfinancial_last_name in students:
+    for id, rut, name, last_name, apacademic_id, apacademic_name, apacademic_last_name, apfinancial_id, apfinancial_name, apfinancial_last_name in students:
         student_data = {
             "id": id,
             "rut": rut,
             "name": name,
             "last_name": last_name,
+            "apacademic_id": apacademic_id,
             "apacademic_name": apacademic_name,
             "apacademic_last_name": apacademic_last_name,
+            "apfinancial_id": apfinancial_id,
             "apfinancial_name": apfinancial_name,
             "apfinancial_last_name": apfinancial_last_name
         }
