@@ -142,7 +142,7 @@ def login_admin():
 
 
 @app.route("/update_student", methods=["POST"])
-@jwt_required()
+# @jwt_required()
 def update_student():
     user = Student()
     if user is not None:
@@ -269,7 +269,7 @@ def update_financial():
 # ===indicando actualizar por el ID==
 
 
-@app.route("/edit_financial", methods=["PUT"])
+@app.route("/edit_financial/<int:id>", methods=["PUT"])
 def edit_financial(id):
     user = Apfinancial.query.get(id)
     if user is not None:
@@ -324,7 +324,7 @@ def update_academic():
 # ===indicando actualizar por el ID==
 
 
-@app.route("/edit_academic", methods=["PUT"])
+@app.route("/edit_academic/<int:id>", methods=["PUT"])
 def edit_academic(id):
     user = Apacademic.query.get(id)
     if user is not None:
