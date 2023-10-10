@@ -8,7 +8,7 @@ class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     create_use = db.Column(db.DateTime, default=datetime.utcnow)
     rut_student = db.Column(db.String(12), unique=True, nullable=False)
-    password = db.Column(db.String(16), nullable=False)
+    # password = db.Column(db.String(16), nullable=False)
     name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     gender = db.Column(db.String(15), nullable=False)
