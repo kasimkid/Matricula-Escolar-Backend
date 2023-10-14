@@ -207,7 +207,7 @@ def update_financial():
 # ===indicando actualizar por el ID==
 
 
-@app.route("/edit_financial", methods=["PUT"])
+@app.route("/edit_financial/<int:id>", methods=["PUT"])
 def edit_financial(id):
     user = Apfinancial.query.get(id)
     if user is not None:
@@ -262,7 +262,7 @@ def update_academic():
 # ===indicando actualizar por el ID==
 
 
-@app.route("/edit_academic", methods=["PUT"])
+@app.route("/edit_academic/<int:id>", methods=["PUT"])
 def edit_academic(id):
     user = Apacademic.query.get(id)
     if user is not None:
@@ -286,11 +286,12 @@ def edit_academic(id):
             "msj": "Academic not found",
             "status": "error"
         }), 404
-
+    #=============================================#
+#===Migrar Status====#
 
 @app.route("/delete_user/<int:id>", methods=["DELETE"])
 def delete_user(id):
-    user = Administrator.query.get(id)
+    user = Student.query.get(id)
     if user is not None:
         db.session.delete(user)
         db.session.commit()
