@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from models import db, Student, Apfinancial, Apacademic, Administrator, Grade, Course, Status, Roll
+from models import db, Student, Apfinancial, Apacademic, Administrator, Grade, Course, Status
 from flask_migrate import Migrate
 from datetime import datetime
 from sqlalchemy.orm import joinedload
@@ -10,18 +10,23 @@ from cloudinary import api
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 import os
+from flask_bcrypt import Bcrypt
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
 
 load_dotenv()
 
-# Se instancia nuesta aPP en Flask
 app = Flask(__name__)
-# print("nombre del archivo",__name__)
+
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///proyect.db"
+app.config["JWT_SECRET_KEY"] = os.getenv('JWT_SECRET_KEY')
+app.config["SECRET_KEY"] = os.getenv('SECRET_KEY')
 db.init_app(app)  # coneccion a las base de datos al ajecutar app
 CORS(app)
 migrate = Migrate(app, db)
-        
-cloudinary.config( 
+jwt = JWTManager(app)
+bcrypt = Bcrypt(app)
+
+cloudinary.config(
     cloud_name=os.getenv('CLOUD_NAME'),
     api_key=os.getenv('API_KEY'),
     api_secret=os.getenv('API_SECRET')
@@ -31,34 +36,32 @@ cloudinary.config(
 def home():
     return "<h1>Probando flask<h1/>"
 
-
 @app.route("/create_account", methods=["POST"])
+# @jwt_required()
 def create_account():
-    # ===INSTANCIA DE LA TABLA
-    user = Administrator()  # crear instancia
-    # === CAPTURA DE DATA
+    user = Administrator() 
     if user is not None:
         data = request.get_json()
         user.rut = data["rut"]
-        user.password = data["password"]
-        # SE DEBE PONER LA OPCION PARA ELEGIR SI LA CUENTA ES ADMIN O USER
-        user.name = data["name"]  # Eliminar
-        user.last_name = data["last_name"]  # Eliminar
+        password = bcrypt.generate_password_hash(data["password"])
+        user.password = password
+        user.name = data["name"]
+        user.last_name = data["last_name"]
         user.email = data["email"]
+        user.roll = data["roll"]
 
         db.session.add(user)
         db.session.commit()
 
         return jsonify({
-            "msj": "Student created",
+            "msj": "Account created",
             "status": "success"
         }), 200
     else:
         return jsonify({
-            'msj': 'Student not created',
+            'msj': 'Account not created',
             'status': "Error"
         }), 404
-
 
 @app.route("/create_course", methods=["POST"])
 def create_course():
@@ -82,15 +85,65 @@ def create_course():
             'status': "Error"
         }), 404
 
+@app.route("/login", methods=["POST"])
+def login_user():
+    data = request.get_json()
+    user = Student.query.filter_by(rut_student=data["rut"]).first()
+    if user is None:
+        user = Administrator.query.filter_by(rut=data["rut"]).first()
+    if user is not None:
+        is_valid = bcrypt.check_password_hash(user.password, data["password"])
+        if is_valid:
+            access_token = create_access_token(data["rut"])
+            return jsonify({
+                "access_token": access_token,
+                "data": user.serialize()
+            }), 200
+        else:
+            return jsonify({
+                "msg": "Usuario o clave invalidos",
+                "status": "unauthorized"
+            }), 401
+    else:
+        return jsonify({
+            "msg": "Usuario o clave invalidos",
+            "status": "unauthorized"
+        }), 401
 
-@app.route("/update_student", methods=["POST"])  # llenar datos de estudiante
+@app.route("/login_admin", methods=["POST"])
+def login_admin():
+    data = request.get_json()
+    user = Administrator.query.filter_by(rut=data["rut"]).first()
+    # return jsonify({"user": user.serialize()})
+    if user is not None:
+        is_valid = bcrypt.check_password_hash(user.password, data["password"])
+        if is_valid:
+            access_token = create_access_token(data["rut"])
+            return jsonify({
+                "access_token": access_token,
+                "data": user.serialize()
+            }), 200
+        else:
+            return jsonify({
+                "msg": "Usuario o clave invalidos",
+                "status": "unauthorized"
+            }), 401
+    else:
+        return jsonify({
+            "msg": "Usuario o clave invalidos",
+            "status": "unauthorized"
+        }), 401
+
+@app.route("/update_student", methods=["POST"])
+# @jwt_required()
 def update_student():
     user = Student()
     if user is not None:
         data = request.get_json()
         birth_date = datetime.strptime(data["birthday"], '%Y-%m-%d')
         user.rut_student = data["rut"]
-        user.password = data["password"]
+        # password = bcrypt.generate_password_hash(data["password"])
+        # user.password = password
         user.name = data["name"]
         user.last_name = data["last_name"]
         user.gender = data["gender"]
@@ -100,6 +153,8 @@ def update_student():
         user.health_system = data["health_system"]
         user.observation = data["observation"]
         user.url_img = data["url_img"]
+        user.course_name = data["course_name"]
+        user.roll = 2
 
         db.session.add(user)
         db.session.commit()
@@ -114,15 +169,15 @@ def update_student():
             "status": "error"
         }), 404
 
-
 @app.route('/upload', methods=['POST'])
 def upload_img():
     if 'image' not in request.files:
         return jsonify({'error': 'not file'}), 400
 
-    file = request.files["image"]   
+    file = request.files["image"]
     try:
-        response = upload(file, folder='uploads', use_filename = True, unique_filename = True)
+        response = upload(file, folder='uploads',
+                          use_filename=True, unique_filename=True)
         url_image = response['secure_url']
         student_id = request.form.get('student_id')
         student = Student.query.get(student_id)
@@ -133,7 +188,6 @@ def upload_img():
     except Exception as error:
         return jsonify({'error': error}), 500
 
-
 @app.route('/images', methods=['GET'])
 def get_images():
     try:
@@ -143,9 +197,6 @@ def get_images():
     except Exception as error:
         return jsonify({'error': error}), 500
 
-# ===indicando actualizar por el ID==
-
-
 @app.route("/edit_student/<int:id>", methods=["PUT"])
 def edit_student(id):
     user = Student.query.get(id)
@@ -154,7 +205,6 @@ def edit_student(id):
         data = request.get_json()
         birth_date = datetime.strptime(data["birthday"], '%Y-%m-%d')
         user.rut_student = data["rut"]
-        user.password = data["password"]
         user.name = data["name"]
         user.last_name = data["last_name"]
         user.gender = data["gender"]
@@ -163,8 +213,8 @@ def edit_student(id):
         user.email_student = data["email"]
         user.health_system = data["health_system"]
         user.observation = data["observation"]
+        user.course_name = data["course_name"]
         # user.course = data["course"]
-
         db.session.commit()
 
         return jsonify({
@@ -176,7 +226,6 @@ def edit_student(id):
             "msj": "Student not found",
             "status": "error"
         }), 404
-
 
 @app.route("/update_financial", methods=["POST"])
 def update_financial():
@@ -231,7 +280,6 @@ def edit_financial(id):
             "msj": "Financial not found",
             "status": "error"
         }), 404
-
 
 @app.route("/update_academic", methods=["POST"])
 def update_academic():
@@ -305,22 +353,92 @@ def delete_user(id):
             "status": "error"
         }), 404
 
-######################## GET POINT ###############################
-# @app.route('/students')
-# def list_student():
-#     students = Student.query.with_entities(Student.id, Student.rut_student, Student.name, Student.last_name).all()
-#     result_students = [{"id": id, "rut": rut, "name": nombre, "last_name": apellido} for id, rut, nombre, apellido in students]
-#     return jsonify(result_students)
-
-
 @app.route('/courses')
 def list_course():
-    courses = Course.query.with_entities(Course.course_name).all()
-    course_names = [course[0] for course in courses]
-    result_courses = [{"course": course} for course in course_names]
+    courses = Course.query.with_entities(Course.id, Course.course_name).all()
+    result_courses = [{"id": course.id, "course_name": course.course_name} for course in courses]
+    print(result_courses)
     return jsonify(result_courses)
 
+@app.route('/info/<int:id>')
+def info_student(id):
+    info = Student.query \
+        .with_entities(
+            Student.id,
+            Student.rut_student,
+            Student.name,
+            Student.last_name,
+            Student.gender,
+            Student.birthday,
+            Student.address,
+            Student.email_student,
+            Student.health_system,
+            Student.observation,
+            Student.url_img,
+            Student.course_name,
+            Apfinancial.id.label('apfinancial_id'),
+            Apfinancial.rut_financial.label('apfinancial_rut_financial'),
+            Apfinancial.name.label('apfinancial_name'),
+            Apfinancial.last_name.label('apfinancial_last_name'),
+            Apfinancial.contact_number.label('apfinancial_contact_number'),
+            Apfinancial.address.label('apfinancial_address'),
+            Apfinancial.email.label('apfinancial_email'),
+            Apfinancial.student_id.label('apfinancial_student_id'),
+            Apacademic.id.label('apacademic_id'),
+            Apacademic.rut_academic.label('apacademic_rut_academic'),
+            Apacademic.name.label('apacademic_name'),
+            Apacademic.last_name.label('apacademic_last_name'),
+            Apacademic.contact_number.label('apacademic_contact_number'),
+            Apacademic.address.label('apacademic_address'),
+            Apacademic.email.label('apacademic_email'),
+            Apacademic.student_id.label('apacademic_student_id')
+        ) \
+        .outerjoin(Apfinancial, Student.id == Apfinancial.student_id) \
+        .outerjoin(Apacademic, Student.id == Apacademic.student_id) \
+        .all()
+    
+    print("SQL Query:", str(info))
+    result_info = []
 
+    for (id, rut, name, last_name, gender, birthday, address, email_student, health_system, observation, url_img, course_name,
+        apfinancial_id, apfinancial_rut_financial, apfinancial_name, apfinancial_last_name, apfinancial_contact_number, 
+        apfinancial_address, apfinancial_email, apfinancial_student_id,
+        apacademic_id, apacademic_rut_academic, apacademic_name, apacademic_last_name, apacademic_contact_number, apacademic_address, 
+        apacademic_email, apacademic_student_id) in info:   
+        info_data = {
+        "id": id,
+        "rut": rut,
+        "name": name,
+        "last_name": last_name,
+        "gender": gender,
+        "birthday": birthday,
+        "address": address,
+        "email_student": email_student,
+        "health_system": health_system,
+        "observation": observation,
+        "url_img": url_img,
+        "course_name": course_name,
+        "apfinancial_id": apfinancial_id,
+        "apfinancial_rut_financial": apfinancial_rut_financial,
+        "apfinancial_name": apfinancial_name,
+        "apfinancial_last_name": apfinancial_last_name,
+        "apfinancial_contact_number": apfinancial_contact_number,
+        "apfinancial_address": apfinancial_address,
+        "apfinancial_email": apfinancial_email,
+        "apfinancial_student_id": apfinancial_student_id,
+        "apacademic_id": apacademic_id,
+        "apacademic_rut_academic": apacademic_rut_academic,
+        "apacademic_name": apacademic_name,
+        "apacademic_last_name": apacademic_last_name,
+        "apacademic_contact_number": apacademic_contact_number,
+        "apacademic_address": apacademic_address,
+        "apacademic_email": apacademic_email,
+        "apacademic_student_id": apacademic_student_id 
+        }
+        result_info.append(info_data)
+        print(info_data)
+    return jsonify(result_info)
+        
 @app.route('/students')
 def list_student():
     students = Student.query \
@@ -329,8 +447,11 @@ def list_student():
             Student.rut_student,
             Student.name,
             Student.last_name,
+            Student.url_img,
+            Apacademic.id.label('apacademic_id'),
             Apacademic.name.label('apacademic_name'),
             Apacademic.last_name.label('apacademic_last_name'),
+            Apfinancial.id.label('apfinancial_id'),
             Apfinancial.name.label('apfinancial_name'),
             Apfinancial.last_name.label('apfinancial_last_name')
         ) \
@@ -341,14 +462,17 @@ def list_student():
     print("SQL Query:", str(students))
     result_students = []
 
-    for id, rut, name, last_name, apacademic_name, apacademic_last_name, apfinancial_name, apfinancial_last_name in students:
+    for id, rut, name, last_name, url_img, apacademic_id, apacademic_name, apacademic_last_name, apfinancial_id, apfinancial_name, apfinancial_last_name in students:
         student_data = {
             "id": id,
             "rut": rut,
             "name": name,
             "last_name": last_name,
+            "url_img": url_img,
+            "apacademic_id": apacademic_id,
             "apacademic_name": apacademic_name,
             "apacademic_last_name": apacademic_last_name,
+            "apfinancial_id": apfinancial_id,
             "apfinancial_name": apfinancial_name,
             "apfinancial_last_name": apfinancial_last_name
         }
