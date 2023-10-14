@@ -2,13 +2,12 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
 db = SQLAlchemy()
-
 class Student(db.Model):
     __tablename__ = 'student'
     id = db.Column(db.Integer, primary_key=True)
     create_use = db.Column(db.DateTime, default=datetime.utcnow)
     rut_student = db.Column(db.String(12), unique=True, nullable=False)
-    password = db.Column(db.String(16), nullable=False)
+    # password = db.Column(db.String(16), nullable=False)
     name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     gender = db.Column(db.String(15), nullable=False)
@@ -19,6 +18,7 @@ class Student(db.Model):
     observation = db.Column(db.String(250), nullable=True)
     url_img = db.Column(db.String(750), nullable=True)
     roll = db.Column(db.Integer, nullable=False)
+    course_name = db.Column(db.String(10), nullable=True)
     # Foreign Key
     # roll_id = db.Column(db.Integer, db.ForeignKey('roll.id'))
     status_id = db.Column(db.Integer, db.ForeignKey('status.id'))
@@ -43,9 +43,9 @@ class Student(db.Model):
             "health_system": self.health_system,
             "observation": self.observation,
             "img": self.url_img,
-            "roll": self.roll
-        }
-    
+            "roll": self.roll,
+            "course_name": self.course_name,
+        } 
 class Apfinancial(db.Model):
     __tablename__ = 'apfinancial'
     id = db.Column(db.Integer, primary_key=True)
@@ -97,7 +97,6 @@ class Administrator(db.Model):
     last_name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(60), unique=True, nullable=False)
     roll = db.Column(db.Integer, nullable=False)
-
     # Foreign Key
     # roll_id = db.Column(db.Integer, db.ForeignKey('roll.id'))
     status_id = db.Column(db.Integer, db.ForeignKey('status.id'))
