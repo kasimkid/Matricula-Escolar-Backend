@@ -8,6 +8,10 @@ flask = "*"
 flask-sqlalchemy = "*"
 flask-migrate = "*"
 flask-cors = "*"
+cloudinary = "*"
+python-dotenv = "*"
+flask-jwt-extended = "*"
+flask-bcrypt = "*"
 
 [dev-packages]
 
