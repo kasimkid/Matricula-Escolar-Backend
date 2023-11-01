@@ -4,6 +4,7 @@ from models import db, Student, Apfinancial, Apacademic, Administrator, Grade, C
 from flask_migrate import Migrate
 from datetime import datetime
 from sqlalchemy.orm import joinedload
+from sqlalchemy import func
 import cloudinary
 from cloudinary.uploader import upload
 from cloudinary import api
@@ -12,6 +13,9 @@ from dotenv import load_dotenv
 import os
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 load_dotenv()
 
@@ -481,6 +485,50 @@ def list_student():
 
     return jsonify(result_students)
 
+@app.route('/student_in_course', methods=['GET'])
+def student_in_course():
+    resultados = db.session.query(Student.course_name, func.count().label('cantidad_estudiantes')) \
+                .group_by(Student.course_name) \
+                .all()
+    cantidad_estudiantes_por_curso = {curso: cantidad for curso, cantidad in resultados}
+
+    return jsonify(cantidad_estudiantes_por_curso)
+
+@app.route('/enviar_correo', methods=['POST'])
+def send_mail():
+    data = request.get_json()
+    mensaje = f"""
+    Estimad@ 
+    {data['name']} {data['last_name']}, se informa que se ha creado 
+    una cuenta en nuestro sistema de matrículas.
+    Su usuario es: {data['rut']} y contraseña {data['password']}
+    Para ingresar puede acceder a http://localhost:3000/
+    
+    
+    Muchas gracias,
+
+    Atte.
+    Sistema de matrículas.
+    """
+
+    subject = "Sistema de matrículas, cuenta creada."
+    sender_email = "s.gaggero87@gmail.com"
+    receiver_email = data['email']
+    password = os.getenv('PASSWORD_EMAIL')
+
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = receiver_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(mensaje, 'plain'))
+
+    # Iniciar sesión en el servidor SMTP y enviar el correo
+    with smtplib.SMTP('smtp.gmail.com', 587) as server:
+        server.starttls()
+        server.login(sender_email, password)
+        server.sendmail(sender_email, receiver_email, msg.as_string())
+
+    return jsonify({"message": "Correo enviado correctamente"})
 
 if __name__ == "__main__":
     app.run(host="localhost", port=8080, debug=True)

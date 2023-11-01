@@ -7,7 +7,6 @@ class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     create_use = db.Column(db.DateTime, default=datetime.utcnow)
     rut_student = db.Column(db.String(12), unique=True, nullable=False)
-    # password = db.Column(db.String(16), nullable=False)
     name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     gender = db.Column(db.String(15), nullable=False)
@@ -20,7 +19,6 @@ class Student(db.Model):
     roll = db.Column(db.Integer, nullable=False)
     course_name = db.Column(db.String(10), nullable=True)
     # Foreign Key
-    # roll_id = db.Column(db.Integer, db.ForeignKey('roll.id'))
     status_id = db.Column(db.Integer, db.ForeignKey('status.id'))
     # Relationship
     financial = db.relationship('Apfinancial')
@@ -28,7 +26,6 @@ class Student(db.Model):
     grades = db.relationship('Grade')
     courses = db.relationship('Course', secondary='studentcourse', back_populates='students')
     status = db.relationship('Status', back_populates='students')
-    # roll = db.relationship('Roll', back_populates='students')
     
     def serialize(self):
         return {
@@ -98,11 +95,9 @@ class Administrator(db.Model):
     email = db.Column(db.String(60), unique=True, nullable=False)
     roll = db.Column(db.Integer, nullable=False)
     # Foreign Key
-    # roll_id = db.Column(db.Integer, db.ForeignKey('roll.id'))
     status_id = db.Column(db.Integer, db.ForeignKey('status.id'))
     # Relationship
     status = db.relationship('Status', back_populates='administrator')
-    # roll = db.relationship('Roll', back_populates='administrator')
     def serialize(self):
         return {
             "id": self.id,
@@ -119,8 +114,7 @@ class Grade(db.Model):
     date = db.Column(db.DateTime, nullable=False)
     # Foreign Key
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'))
-    # relationship
-    #student = db.relationship('Student')
+
     def serialize(self):
         return {
             "id": self.id,
@@ -150,20 +144,6 @@ class Status(db.Model):
             "id": self.id,
             "status": self.status
         }
-# class Roll(db.Model):
-#     __tablename__ = 'roll'
-#     id = db.Column(db.Integer, primary_key=True)
-#     roll = db.Column(db.Integer, nullable=False)
-#     # Foreign Key
-    
-#     # Relationship
-#     administrator = db.relationship('Administrator', back_populates='roll', cascade="all, delete-orphan", single_parent=True)
-#     students = db.relationship('Student', back_populates='roll')
-#     def serialize(self):
-#         return {
-#             "id": self.id,
-#             "roll": self.roll
-#         }
 class StudentCourse(db.Model):
     __tablename__ = 'studentcourse'
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'), primary_key=True)
